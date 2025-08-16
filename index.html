@@ -2,14 +2,13 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Globe Wireframe + Épingles sobres</title>
+  <title>Wireframe Continents Globe</title>
   <style>
     html, body { height: 100%; margin: 0; }
     body { background: #ffffff; }
     #globeViz { width: 100vw; height: 100vh; }
     #globeViz canvas { background: #fff !important; }
   </style>
-  <!-- Versions précises recommandées pour la compatibilité -->
   <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
   <script src="https://unpkg.com/globe.gl@2.26.0/dist/globe.gl.min.js"></script>
 </head>
@@ -19,18 +18,26 @@
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
-    // Globe neutre
-    globe.globeImageUrl(null);
+    // Utilise un masque où continents = blanc, eau = noir/transp.
+    globe.globeImageUrl('https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png');
     globe.bumpImageUrl(null);
 
-    // Matériau du globe
-    const mat = globe.globeMaterial();
-    mat.wireframe = true;
-    mat.color = new THREE.Color(0x222222);  // gris très foncé
-    mat.roughness = 1;
-    mat.metalness = 0;
+    // Globe wireframe dense, seulement sur les continents
+    const segments = 128; // plus grand = plus dense
+    const geo = new THREE.SphereGeometry(globe.getGlobeRadius(), segments, segments);
 
-    // Fond blanc (pour le renderer et la scène)
+    // Création du matériau wireframe, rendu uniquement là où alpha > 0
+    const mat = new THREE.MeshBasicMaterial({
+      wireframe: true,
+      map: new THREE.TextureLoader().load('https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png'),
+      alphaTest: 0.1, // cache l'eau (noir/transparent)
+      color: 0x222222
+    });
+
+    // Remplace le globe par cette géométrie custom
+    globe.globeMaterial(mat);
+    globe.globeGeometry(geo);
+
     globe.scene().background = new THREE.Color(0xffffff);
     globe.renderer().setClearColor(0xffffff, 1);
 
@@ -41,25 +48,24 @@
     dir.position.set(5, 3, 5);
     scene.add(dir);
 
-    // Données des épingles
+    // Épingles exemple
     const pins = [
       { lat: 48.8566, lng: 2.3522, name: 'Paris' },
       { lat: 52.52,   lng: 13.405, name: 'Berlin' },
       { lat: 40.7128, lng: -74.0060, name: 'New York' }
     ];
 
-    // Ajout des épingles après initialisation
     globe
       .customLayerData(pins)
       .customThreeObject(d => {
         const r = 0.0075;
         const h = 0.35;
-        const geo = new THREE.CylinderGeometry(r, r, h, 8);
         const mat = new THREE.MeshStandardMaterial({
           color: 0x000000,
           transparent: true,
           opacity: 0.8
         });
+        const geo = new THREE.CylinderGeometry(r, r, h, 8);
         return new THREE.Mesh(geo, mat);
       })
       .customThreeObjectUpdate((obj, d) => {
