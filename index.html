@@ -21,7 +21,7 @@
       .then(landTopo => {
         world
           .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
-          .polygonCapMaterial(new MeshLambertMaterial({ color: 'darkslategrey', side: DoubleSide }))
+          .polygonCapMaterial(new THREE.MeshLambertMaterial({ color: 0x00008b, side: THREE.DoubleSide }))
           .polygonSideColor(() => 'rgba(0,0,0,0)');
       });
   </script>
