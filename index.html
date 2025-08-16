@@ -18,24 +18,24 @@
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
-    // Pas de texture -> base neutre
+    // Globe neutre
     globe.globeImageUrl(null);
     globe.bumpImageUrl(null);
 
-    // Modifier le matériau
+    // Matériau du globe
     const mat = globe.globeMaterial();
-    mat.wireframe = true;                       // fil de fer
-    mat.color = new THREE.Color(0x333333);      // gris sombre pour contraste
+    mat.wireframe = true;
+    mat.color = new THREE.Color(0x222222);  // gris très foncé pour bien ressortir
     mat.roughness = 1;
     mat.metalness = 0;
 
-    // Fond blanc dans la scène
+    // Fond blanc
     globe.scene().background = new THREE.Color(0xffffff);
 
-    // Lumière chaude
+    // Lumière
     const scene = globe.scene();
-    scene.add(new THREE.AmbientLight(0xffcc66, 0.35));
-    const dir = new THREE.DirectionalLight(0xffc87c, 1.1);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
     dir.position.set(5, 3, 5);
     scene.add(dir);
 
@@ -53,13 +53,15 @@
         const h = 0.35;
         const geo = new THREE.CylinderGeometry(r, r, h, 8);
         const mat = new THREE.MeshStandardMaterial({
-          color: 0x000000, transparent: true, opacity: 0.7
+          color: 0x000000, // épingles noires
+          transparent: true,
+          opacity: 0.8
         });
         return new THREE.Mesh(geo, mat);
       })
       .customThreeObjectUpdate((obj, d) => {
         const { lat, lng } = d;
-        const phi   = (90 - lat) * Math.PI / 180;
+        const phi = (90 - lat) * Math.PI / 180;
         const theta = (lng + 180) * Math.PI / 180;
         const R = globe.getGlobeRadius();
 
@@ -73,10 +75,8 @@
         obj.position.multiplyScalar(1.02);
       });
 
-    // Rotation douce
     globe.controls().autoRotate = true;
     globe.controls().autoRotateSpeed = 0.6;
-
     globe.pointLabel(() => null);
   </script>
 </body>
