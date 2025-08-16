@@ -5,7 +5,7 @@
   <title>Wireframe Continents Globe</title>
   <style>
     html, body { height: 100%; margin: 0; }
-    body { background: #ffffff; }
+    body { background: #fff; }
     #globeViz { width: 100vw; height: 100vh; }
     #globeViz canvas { background: #fff !important; }
   </style>
@@ -15,34 +15,37 @@
 <body>
   <div id="globeViz"></div>
   <script>
+    const maskUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png'; // doit être transparent hors continents
+
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
-    // Masque des continents (blanc=terre, noir=mer)
-    const maskUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png';
-    
-    // Crée une géométrie très segmentée pour wireframe dense
-    const globeRadius = globe.getGlobeRadius ? globe.getGlobeRadius() : 1; // fallback si getGlobeRadius absent
+    // Créer une géométrie très segmentée
+    const globeRadius = globe.getGlobeRadius();
     const geo = new THREE.SphereGeometry(globeRadius, 128, 128);
 
-    // Matériau wireframe, alphaTest pour masquer la mer
-    const texture = new THREE.TextureLoader().load(maskUrl, function() {
-      globe.scene().background = new THREE.Color(0xffffff);
-      globe.renderer().setClearColor(0xffffff, 1);
+    // Charger le masque
+    const loader = new THREE.TextureLoader();
+    loader.load(maskUrl, (texture) => {
+      // Matériau wireframe, alphaTest pour ne montrer que les continents
+      const mat = new THREE.MeshBasicMaterial({
+        wireframe: true,
+        map: texture,
+        alphaTest: 0.5, // n'affiche que là où le masque est opaque
+        color: 0x222222,
+        transparent: true
+      });
+
+      globe.globeGeometry(geo);
+      globe.globeMaterial(mat);
     });
 
-    const mat = new THREE.MeshBasicMaterial({
-      wireframe: true,
-      map: texture,
-      alphaTest: 0.5, // n'affiche que là où le masque est blanc
-      color: 0x222222
-    });
-
-    // Remplace le globe par la géométrie custom et le matériau
-    globe.globeGeometry(geo);
-    globe.globeMaterial(mat);
     globe.globeImageUrl(null);
     globe.bumpImageUrl(null);
+
+    // Fond blanc
+    globe.scene().background = new THREE.Color(0xffffff);
+    globe.renderer().setClearColor(0xffffff, 1);
 
     // Lumière
     const scene = globe.scene();
