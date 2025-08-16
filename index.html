@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Wireframe Continents Globe</title>
+  <title>Wireframe Globe Minimaliste</title>
   <style>
     html, body { height: 100%; margin: 0; }
     body { background: #fff; }
@@ -14,17 +14,14 @@
 <body>
   <div id="globeViz"></div>
   <script>
-    const maskUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png';
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
+    // Globe vide de texture, uniquement wireframe
     globe.globeImageUrl(null);
     globe.bumpImageUrl(null);
 
     globe.globeMaterial(new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load(maskUrl),
-      transparent: true,
-      alphaTest: 0.5,
       color: 0x222222,
       wireframe: true
     }));
@@ -33,12 +30,8 @@
     globe.scene().background = new THREE.Color(0xffffff);
     globe.renderer().setClearColor(0xffffff, 1);
 
-    // Lumière
-    const scene = globe.scene();
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-    dir.position.set(5, 3, 5);
-    scene.add(dir);
+    // Lumière minimale (facultative pour MeshBasicMaterial)
+    globe.scene().add(new THREE.AmbientLight(0xffffff, 0.6));
 
     // Épingles
     const pins = [
