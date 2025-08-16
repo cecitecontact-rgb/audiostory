@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Globe Audio</title>
+  <style>
+    body { margin: 0; }
+    #globeViz { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="globeViz"></div>
+
+  <!-- Globe.gl -->
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+
+  <script>
+    const myGlobe = Globe()
+      (document.getElementById('globeViz'))
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+
+    const points = [
+      { lat: 48.8566, lng: 2.3522, size: 0.5, color: "orange", name: "Paris", audio: "audios/paris.mp3" },
+      { lat: 40.7128, lng: -74.0060, size: 0.5, color: "red", name: "New York", audio: "audios/ny.mp3" },
+      { lat: 35.6895, lng: 139.6917, size: 0.5, color: "blue", name: "Tokyo", audio: "audios/tokyo.mp3" }
+    ];
+
+    myGlobe
+      .pointsData(points)
+      .pointLat(d => d.lat)
+      .pointLng(d => d.lng)
+      .pointColor(d => d.color)
+      .pointAltitude(d => d.size)
+      .pointLabel(d => d.name);
+
+    // Jouer l'audio au clic
+    myGlobe.onPointClick(d => {
+      const audio = new Audio(d.audio);
+      audio.play();
+    });
+  </script>
+</body>
+</html>
