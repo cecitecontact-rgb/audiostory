@@ -1,46 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Globe Audio</title>
-  <style>
-    body { margin: 0; }
-    #globeViz { width: 100vw; height: 100vh; }
-  </style>
-</head>
-<body>
-  <div id="globeViz"></div>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <title>Globe Wireframe Minimaliste</title>
+    <style>
+      body { margin: 0; background-color: #1c1c1c; } /* fond gris anthracite */
+      canvas { display: block; }
+    </style>
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
+  </head>
+  <body>
+    <div id="globeViz"></div>
 
-  <!-- Globe.gl -->
-  <script src="https://unpkg.com/three"></script>
-  <script src="https://unpkg.com/globe.gl"></script>
+    <script>
+      // Initialisation du globe
+      const myGlobe = Globe()
+        (document.getElementById('globeViz'))
+        .globeImageUrl(null) // pas de texture
+        .bumpImageUrl(null)
+        .globeMaterial(new THREE.MeshBasicMaterial({
+          color: 0x999999,
+          wireframe: true // fil de fer gris
+        }))
+        .pointLat('lat')
+        .pointLng('lng')
+        .pointColor(() => "rgba(255,255,255,0.7)") // blanc translucide
+        .pointAltitude(() => 0.02) // hauteur discrète
+        .pointRadius(0.15); // très petit rayon
 
-  <script>
-    const myGlobe = Globe()
-      (document.getElementById('globeViz'))
-      .globeImageUrl(null)
-.globeMaterial(new THREE.MeshBasicMaterial({ color: 0x999999, wireframe: true }))
+      // Exemple de points sobres
+      myGlobe.pointsData([
+        { lat: 48.8566, lng: 2.3522, name: "Paris", audio: "audios/paris.mp3" },
+        { lat: 52.52, lng: 13.405, name: "Berlin", audio: "audios/berlin.mp3" },
+        { lat: 40.7128, lng: -74.0060, name: "New York", audio: "audios/ny.mp3" }
+      ]);
 
+      // Rotation douce
+      myGlobe.controls().autoRotate = true;
+      myGlobe.controls().autoRotateSpeed = 0.6;
 
-    const points = [
-      { lat: 48.8566, lng: 2.3522, size: 0.5, color: "orange", name: "Paris", audio: "audios/paris.mp3" },
-      { lat: 40.7128, lng: -74.0060, size: 0.5, color: "red", name: "New York", audio: "audios/ny.mp3" },
-      { lat: 35.6895, lng: 139.6917, size: 0.5, color: "blue", name: "Tokyo", audio: "audios/tokyo.mp3" }
-    ];
-
-    myGlobe
-      .pointsData(points)
-      .pointLat(d => d.lat)
-      .pointLng(d => d.lng)
-      .pointColor(d => d.color)
-      .pointAltitude(d => d.size)
-      .pointLabel(d => d.name);
-
-    // Jouer l'audio au clic
-    myGlobe.onPointClick(d => {
-      const audio = new Audio(d.audio);
-      audio.play();
-    });
-  </script>
-</body>
+      // Lumière chaude douce
+      const scene = myGlobe.scene();
+      const light = new THREE.DirectionalLight(0xffcc66, 0.8);
+      light.position.set(5, 3, 5);
+      scene.add(light);
+    </script>
+  </body>
 </html>
