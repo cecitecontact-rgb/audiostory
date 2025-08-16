@@ -15,42 +15,19 @@
   <div id="globeViz"></div>
   <script>
     const maskUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png';
-
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
-    // Création de la géométrie très segmentée
-    const globeRadius = globe.getGlobeRadius();
-    const geo = new THREE.SphereGeometry(globeRadius, 128, 128);
-
-    // Charger le masque
-    const loader = new THREE.TextureLoader();
-    loader.load(maskUrl, (texture) => {
-      // Matériau principal pour les continents
-      const mat = new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        alphaTest: 0.5,
-        color: 0x222222
-      });
-
-      const globeMesh = new THREE.Mesh(geo, mat);
-
-      // Wireframe via edges
-      const edges = new THREE.EdgesGeometry(geo);
-      const lineMat = new THREE.LineBasicMaterial({ color: 0x222222 });
-      const wireframe = new THREE.LineSegments(edges, lineMat);
-
-      // Grouper pour remplacer le globe
-      const group = new THREE.Group();
-      group.add(globeMesh);
-      group.add(wireframe);
-
-      globe.globeObject(group);
-    });
-
     globe.globeImageUrl(null);
     globe.bumpImageUrl(null);
+
+    globe.globeMaterial(new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load(maskUrl),
+      transparent: true,
+      alphaTest: 0.5,
+      color: 0x222222,
+      wireframe: true
+    }));
 
     // Fond blanc
     globe.scene().background = new THREE.Color(0xffffff);
@@ -75,13 +52,8 @@
       .customThreeObject(d => {
         const r = 0.0075;
         const h = 0.35;
-        const mat = new THREE.MeshStandardMaterial({
-          color: 0x000000,
-          transparent: true,
-          opacity: 0.8
-        });
-        const geo = new THREE.CylinderGeometry(r, r, h, 8);
-        return new THREE.Mesh(geo, mat);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x000000, transparent: true, opacity: 0.8 });
+        return new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 8), mat);
       })
       .customThreeObjectUpdate((obj, d) => {
         const { lat, lng } = d;
