@@ -1,23 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
 <head>
+  <meta charset="utf-8" />
+  <title>Globe Minimaliste Globe.gl</title>
   <style> body { margin: 0; } </style>
-
-  <script src="//cdn.jsdelivr.net/npm/globe.gl"></script>
-<!--  <script src="../../dist/globe.gl.js"></script>-->
+  <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 </head>
-
 <body>
   <div id="globeViz"></div>
-
   <script type="module">
     import { MeshLambertMaterial, DoubleSide } from 'https://esm.sh/three';
     import * as topojson from 'https://esm.sh/topojson-client';
 
     const world = new Globe(document.getElementById('globeViz'))
-      .backgroundColor('rgba(0,0,0,0)')
+      .backgroundColor('rgba(255,255,255,1)') // fond blanc pur
       .showGlobe(false)
       .showAtmosphere(false);
 
-    fetch('//cdn.jsdelivr.net/npm/world-atlas/land-110m.json').then(res => res.json())
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json').then(res => res.json())
       .then(landTopo => {
         world
           .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
@@ -26,3 +26,4 @@
       });
   </script>
 </body>
+</html>
