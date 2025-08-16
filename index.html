@@ -7,7 +7,6 @@
     html, body { height: 100%; margin: 0; }
     body { background: #fff; }
     #globeViz { width: 100vw; height: 100vh; }
-    #globeViz canvas { background: #fff !important; }
   </style>
   <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
   <script src="https://unpkg.com/globe.gl@2.26.0/dist/globe.gl.min.js"></script>
@@ -15,29 +14,39 @@
 <body>
   <div id="globeViz"></div>
   <script>
-    const maskUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png'; // doit être transparent hors continents
+    const maskUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png';
 
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
-    // Créer une géométrie très segmentée
+    // Création de la géométrie très segmentée
     const globeRadius = globe.getGlobeRadius();
     const geo = new THREE.SphereGeometry(globeRadius, 128, 128);
 
     // Charger le masque
     const loader = new THREE.TextureLoader();
     loader.load(maskUrl, (texture) => {
-      // Matériau wireframe, alphaTest pour ne montrer que les continents
+      // Matériau principal pour les continents
       const mat = new THREE.MeshBasicMaterial({
-        wireframe: true,
         map: texture,
-        alphaTest: 0.5, // n'affiche que là où le masque est opaque
-        color: 0x222222,
-        transparent: true
+        transparent: true,
+        alphaTest: 0.5,
+        color: 0x222222
       });
 
-      globe.globeGeometry(geo);
-      globe.globeMaterial(mat);
+      const globeMesh = new THREE.Mesh(geo, mat);
+
+      // Wireframe via edges
+      const edges = new THREE.EdgesGeometry(geo);
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x222222 });
+      const wireframe = new THREE.LineSegments(edges, lineMat);
+
+      // Grouper pour remplacer le globe
+      const group = new THREE.Group();
+      group.add(globeMesh);
+      group.add(wireframe);
+
+      globe.globeObject(group);
     });
 
     globe.globeImageUrl(null);
