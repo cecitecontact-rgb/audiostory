@@ -2,27 +2,62 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Globe Minimaliste Globe.gl</title>
-  <style> body { margin: 0; } </style>
+  <title>Globe minimaliste bleu sombre avec épingles</title>
+  <style>
+    body { margin: 0; }
+    #globeViz { width: 100vw; height: 100vh; }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 </head>
 <body>
   <div id="globeViz"></div>
   <script type="module">
-    import { MeshLambertMaterial, DoubleSide } from 'https://esm.sh/three';
+    import { MeshLambertMaterial, DoubleSide, SphereGeometry, MeshBasicMaterial, Mesh } from 'https://esm.sh/three';
     import * as topojson from 'https://esm.sh/topojson-client';
 
+    // Initialiser le globe
     const world = new Globe(document.getElementById('globeViz'))
-      .backgroundColor('rgba(255,255,255,1)') // fond blanc pur
+      .backgroundColor('rgba(255,255,255,1)')
       .showGlobe(false)
       .showAtmosphere(false);
 
+    // Couleur bleu très sombre
+    const blueDark = 0x061A40; // ou remplace par un autre hex si tu veux
+
+    // Charger les continents
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json').then(res => res.json())
       .then(landTopo => {
         world
           .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
-          .polygonCapMaterial(new MeshLambertMaterial({ color: 'darkslategrey', side: DoubleSide }))
+          .polygonCapMaterial(new MeshLambertMaterial({ color: blueDark, side: DoubleSide }))
           .polygonSideColor(() => 'rgba(0,0,0,0)');
+
+        // Ajouter des épingles minimalistes
+        // Format : [latitude, longitude, label]
+        const pins = [
+          [48.8566, 2.3522, 'Paris'],
+          [40.7128, -74.0060, 'NYC'],
+          [35.6895, 139.6917, 'Tokyo'],
+        ];
+
+        pins.forEach(([lat, lon, label]) => {
+          // Convertir lat/lon en coordonnées sphériques
+          const r = world.getGlobeRadius ? world.getGlobeRadius() : 1;
+          const phi = (90 - lat) * Math.PI / 180;
+          const theta = (lon + 180) * Math.PI / 180;
+          const x = r * Math.sin(phi) * Math.cos(theta);
+          const y = r * Math.cos(phi);
+          const z = r * Math.sin(phi) * Math.sin(theta);
+
+          // Créer sphère noire minimaliste
+          const pinGeometry = new SphereGeometry(0.025, 8, 8);
+          const pinMaterial = new MeshBasicMaterial({ color: 0x222222 });
+          const pin = new Mesh(pinGeometry, pinMaterial);
+          pin.position.set(x * 1.02, y * 1.02, z * 1.02);
+
+          // Ajouter au globe (groupe Three.js interne)
+          world.scene().add(pin);
+        });
       });
   </script>
 </body>
