@@ -2,9 +2,9 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8">
-    <title>Globe Wireframe Minimaliste</title>
+    <title>Globe Wireframe avec Épingles</title>
     <style>
-      body { margin: 0; background-color: #1c1c1c; } /* fond gris anthracite */
+      body { margin: 0; background-color: #1c1c1c; } /* fond anthracite */
       canvas { display: block; }
     </style>
     <script src="https://unpkg.com/three"></script>
@@ -14,35 +14,57 @@
     <div id="globeViz"></div>
 
     <script>
-      // Initialisation du globe
+      // Exemple de données
+      const data = [
+        { lat: 48.8566, lng: 2.3522, name: "Paris" },
+        { lat: 52.52, lng: 13.405, name: "Berlin" },
+        { lat: 40.7128, lng: -74.0060, name: "New York" }
+      ];
+
+      // Création du globe wireframe
       const myGlobe = Globe()
         (document.getElementById('globeViz'))
-        .globeImageUrl(null) // pas de texture
+        .globeImageUrl(null)
         .bumpImageUrl(null)
         .globeMaterial(new THREE.MeshBasicMaterial({
           color: 0x999999,
-          wireframe: true // fil de fer gris
+          wireframe: true
         }))
-        .pointLat('lat')
-        .pointLng('lng')
-        .pointColor(() => "rgba(255,255,255,0.7)") // blanc translucide
-        .pointAltitude(() => 0.02) // hauteur discrète
-        .pointRadius(0.15); // très petit rayon
+        .customLayerData(data) // on passe nos points
+        .customThreeObject(d => {
+          // Chaque point = une fine épingle (cylindre)
+          const geometry = new THREE.CylinderGeometry(0.01, 0.01, 0.3, 8); 
+          const material = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff, 
+            transparent: true, 
+            opacity: 0.7 
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.lookAt(0,0,0); // orienter vers le centre du globe
+          return mesh;
+        })
+        .customThreeObjectUpdate((obj, d) => {
+          const { lat, lng } = d;
+          const phi = (90 - lat) * Math.PI / 180;
+          const theta = (lng + 180) * Math.PI / 180;
+          const r = myGlobe.getGlobeRadius();
 
-      // Exemple de points sobres
-      myGlobe.pointsData([
-        { lat: 48.8566, lng: 2.3522, name: "Paris", audio: "audios/paris.mp3" },
-        { lat: 52.52, lng: 13.405, name: "Berlin", audio: "audios/berlin.mp3" },
-        { lat: 40.7128, lng: -74.0060, name: "New York", audio: "audios/ny.mp3" }
-      ]);
+          // Positionner les épingles sur la sphère
+          obj.position.x = r * Math.sin(phi) * Math.cos(theta);
+          obj.position.y = r * Math.cos(phi);
+          obj.position.z = r * Math.sin(phi) * Math.sin(theta);
 
-      // Rotation douce
+          // Les tirer vers l'extérieur
+          obj.position.multiplyScalar(1.02);
+        });
+
+      // Rotation lente
       myGlobe.controls().autoRotate = true;
       myGlobe.controls().autoRotateSpeed = 0.6;
 
-      // Lumière chaude douce
+      // Lumière chaude
       const scene = myGlobe.scene();
-      const light = new THREE.DirectionalLight(0xffcc66, 0.8);
+      const light = new THREE.DirectionalLight(0xffcc66, 1);
       light.position.set(5, 3, 5);
       scene.add(light);
     </script>
