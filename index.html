@@ -18,28 +18,31 @@
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
-    // Utilise un masque où continents = blanc, eau = noir/transp.
-    globe.globeImageUrl('https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png');
-    globe.bumpImageUrl(null);
+    // Masque des continents (blanc=terre, noir=mer)
+    const maskUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png';
+    
+    // Crée une géométrie très segmentée pour wireframe dense
+    const globeRadius = globe.getGlobeRadius ? globe.getGlobeRadius() : 1; // fallback si getGlobeRadius absent
+    const geo = new THREE.SphereGeometry(globeRadius, 128, 128);
 
-    // Globe wireframe dense, seulement sur les continents
-    const segments = 128; // plus grand = plus dense
-    const geo = new THREE.SphereGeometry(globe.getGlobeRadius(), segments, segments);
+    // Matériau wireframe, alphaTest pour masquer la mer
+    const texture = new THREE.TextureLoader().load(maskUrl, function() {
+      globe.scene().background = new THREE.Color(0xffffff);
+      globe.renderer().setClearColor(0xffffff, 1);
+    });
 
-    // Création du matériau wireframe, rendu uniquement là où alpha > 0
     const mat = new THREE.MeshBasicMaterial({
       wireframe: true,
-      map: new THREE.TextureLoader().load('https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-mask.png'),
-      alphaTest: 0.1, // cache l'eau (noir/transparent)
+      map: texture,
+      alphaTest: 0.5, // n'affiche que là où le masque est blanc
       color: 0x222222
     });
 
-    // Remplace le globe par cette géométrie custom
-    globe.globeMaterial(mat);
+    // Remplace le globe par la géométrie custom et le matériau
     globe.globeGeometry(geo);
-
-    globe.scene().background = new THREE.Color(0xffffff);
-    globe.renderer().setClearColor(0xffffff, 1);
+    globe.globeMaterial(mat);
+    globe.globeImageUrl(null);
+    globe.bumpImageUrl(null);
 
     // Lumière
     const scene = globe.scene();
@@ -48,7 +51,7 @@
     dir.position.set(5, 3, 5);
     scene.add(dir);
 
-    // Épingles exemple
+    // Épingles
     const pins = [
       { lat: 48.8566, lng: 2.3522, name: 'Paris' },
       { lat: 52.52,   lng: 13.405, name: 'Berlin' },
