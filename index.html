@@ -35,15 +35,6 @@
         const x = r * Math.sin(phi) * Math.cos(theta);
         const y = r * Math.cos(phi);
         const z = r * Math.sin(phi) * Math.sin(theta);
-
-        // Création sphère noire
-        const pin = new THREE.Mesh(
-          new THREE.SphereGeometry(0.03, 8, 8),
-          new THREE.MeshBasicMaterial({ color: 0xB30000 }) // rouge sombre
-        );
-        pin.position.set(x, y, z);
-
-        world.scene().add(pin);
       });
     // Add auto-rotation
     world.controls().autoRotate = true;
