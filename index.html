@@ -21,11 +21,11 @@
       .then(landTopo => {
         world
           .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
-          .polygonCapMaterial(new MeshLambertMaterial({ color: 'darkslategrey', side: DoubleSide }))
+          .polygonCapMaterial(new MeshLambertMaterial({ color: 'black', side: DoubleSide }))
           .polygonSideColor(() => 'rgba(0,0,0,0)');
       });
     // Add auto-rotation
     world.controls().autoRotate = true;
-    world.controls().autoRotateSpeed = 0.6;
+    world.controls().autoRotateSpeed = 5;
   </script>
 </body>
