@@ -1,65 +1,28 @@
-<!DOCTYPE html>
-<html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <title>Globe minimaliste bleu sombre avec épingles</title>
-  <style>
-    body { margin: 0; }
-    #globeViz { width: 100vw; height: 100vh; }
-  </style>
-  <!-- Librairies nécessaires pour globe.gl -->
-  <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
-  <script src="https://unpkg.com/topojson-client@3"></script>
-  <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+  <style> body { margin: 0; } </style>
+
+  <script src="//cdn.jsdelivr.net/npm/globe.gl"></script>
+<!--  <script src="../../dist/globe.gl.js"></script>-->
 </head>
+
 <body>
   <div id="globeViz"></div>
-  <script>
-    // Bleu très sombre
-    const blueDark = "#061A40";
-    // Points épingles [lat, lon]
-    const pins = [
-      { lat: 48.8566, lon: 2.3522 },      // Paris
-      { lat: 40.7128, lon: -74.006 },     // NYC
-      { lat: 35.6895, lon: 139.6917 }     // Tokyo
-    ];
 
-    // Initialise le globe
-    const world = Globe(document.getElementById('globeViz'))
-      .backgroundColor("#fff")
+  <script type="module">
+    import { MeshLambertMaterial, DoubleSide } from 'https://esm.sh/three';
+    import * as topojson from 'https://esm.sh/topojson-client';
+
+    const world = new Globe(document.getElementById('globeViz'))
+      .backgroundColor('rgba(0,0,0,0)')
       .showGlobe(false)
       .showAtmosphere(false);
 
-    // Charge les continents
-    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')
-      .then(res => res.json())
+    fetch('//cdn.jsdelivr.net/npm/world-atlas/land-110m.json').then(res => res.json())
       .then(landTopo => {
-        const landFeatures = topojson.feature(landTopo, landTopo.objects.land).features;
         world
-          .polygonsData(landFeatures)
-          .polygonCapColor(() => blueDark)
+          .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
+          .polygonCapMaterial(new MeshLambertMaterial({ color: 'darkslategrey', side: DoubleSide }))
           .polygonSideColor(() => 'rgba(0,0,0,0)');
-
-        // Ajoute les épingles
-        pins.forEach(pin => {
-          // Conversion lat/lon en coordonnées 3D
-          const r = 1.01;
-          const phi = (90 - pin.lat) * Math.PI / 180;
-          const theta = (pin.lon + 180) * Math.PI / 180;
-          const x = r * Math.sin(phi) * Math.cos(theta);
-          const y = r * Math.cos(phi);
-          const z = r * Math.sin(phi) * Math.sin(theta);
-
-          // Sphère noire pour épingle
-          const mesh = new THREE.Mesh(
-            new THREE.SphereGeometry(0.025, 8, 8),
-            new THREE.MeshBasicMaterial({ color: 0x111111 })
-          );
-          mesh.position.set(x, y, z);
-
-          world.scene().add(mesh);
-        });
       });
   </script>
 </body>
-</html>
