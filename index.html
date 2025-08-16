@@ -5,7 +5,7 @@
   <title>Globe Wireframe + Épingles sobres</title>
   <style>
     html, body { height: 100%; margin: 0; }
-    body { background: #1c1c1c; } /* anthracite */
+    body { background: #ffffff; } /* fond blanc */
     #globeViz { width: 100vw; height: 100vh; }
   </style>
   <script src="https://unpkg.com/three"></script>
@@ -18,19 +18,19 @@
     const el = document.getElementById('globeViz');
     const globe = Globe()(el);
 
-    // Pas de texture -> base “neutre”
+    // Pas de texture -> base neutre
     globe.globeImageUrl(null);
     globe.bumpImageUrl(null);
 
-    // IMPORTANT : modifier le matériau EXISTANT (sinon certaines versions ignorent le remplacement)
+    // Modifier le matériau
     const mat = globe.globeMaterial();
     mat.wireframe = true;                       // fil de fer
-    mat.color = new THREE.Color(0x999999);      // gris sobre
+    mat.color = new THREE.Color(0x333333);      // gris sombre pour contraste
     mat.roughness = 1;
     mat.metalness = 0;
 
-    // Fond anthracite dans la scène (utile sur certaines configs)
-    globe.scene().background = new THREE.Color(0x1c1c1c);
+    // Fond blanc dans la scène
+    globe.scene().background = new THREE.Color(0xffffff);
 
     // Lumière chaude
     const scene = globe.scene();
@@ -39,7 +39,7 @@
     dir.position.set(5, 3, 5);
     scene.add(dir);
 
-    // Épingles sobres (cylindres fins)
+    // Épingles sobres
     const pins = [
       { lat: 48.8566, lng: 2.3522, name: 'Paris' },
       { lat: 52.52,   lng: 13.405, name: 'Berlin' },
@@ -49,11 +49,11 @@
     globe
       .customLayerData(pins)
       .customThreeObject(d => {
-        const r = 0.0075;   // rayon fin
-        const h = 0.35;     // hauteur
+        const r = 0.0075;
+        const h = 0.35;
         const geo = new THREE.CylinderGeometry(r, r, h, 8);
         const mat = new THREE.MeshStandardMaterial({
-          color: 0xffffff, transparent: true, opacity: 0.7
+          color: 0x000000, transparent: true, opacity: 0.7
         });
         return new THREE.Mesh(geo, mat);
       })
@@ -63,17 +63,13 @@
         const theta = (lng + 180) * Math.PI / 180;
         const R = globe.getGlobeRadius();
 
-        // Position sur la sphère
         const x = R * Math.sin(phi) * Math.cos(theta);
         const y = R * Math.cos(phi);
         const z = R * Math.sin(phi) * Math.sin(theta);
         obj.position.set(x, y, z);
 
-        // Orienter l’axe Y du cylindre le long de la normale "vers l’extérieur"
         const normal = obj.position.clone().normalize();
         obj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-
-        // Décoller légèrement de la surface
         obj.position.multiplyScalar(1.02);
       });
 
@@ -81,7 +77,6 @@
     globe.controls().autoRotate = true;
     globe.controls().autoRotateSpeed = 0.6;
 
-    // (optionnel) désactiver les tooltips natifs
     globe.pointLabel(() => null);
   </script>
 </body>
