@@ -18,8 +18,9 @@
   <script>
     const myGlobe = Globe()
       (document.getElementById('globeViz'))
-      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
-      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+      .globeImageUrl(null)
+.globeMaterial(new THREE.MeshBasicMaterial({ color: 0x999999, wireframe: true }))
+
 
     const points = [
       { lat: 48.8566, lng: 2.3522, size: 0.5, color: "orange", name: "Paris", audio: "audios/paris.mp3" },
