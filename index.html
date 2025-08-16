@@ -15,16 +15,14 @@
     import { MeshLambertMaterial, DoubleSide, SphereGeometry, MeshBasicMaterial, Mesh } from 'https://esm.sh/three';
     import * as topojson from 'https://esm.sh/topojson-client';
 
-    // Initialiser le globe
     const world = new Globe(document.getElementById('globeViz'))
       .backgroundColor('rgba(255,255,255,1)')
       .showGlobe(false)
       .showAtmosphere(false);
 
-    // Couleur bleu très sombre
-    const blueDark = 0x061A40; // ou remplace par un autre hex si tu veux
+    // Bleu très sombre
+    const blueDark = 0x061A40;
 
-    // Charger les continents
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json').then(res => res.json())
       .then(landTopo => {
         world
@@ -32,30 +30,26 @@
           .polygonCapMaterial(new MeshLambertMaterial({ color: blueDark, side: DoubleSide }))
           .polygonSideColor(() => 'rgba(0,0,0,0)');
 
-        // Ajouter des épingles minimalistes
-        // Format : [latitude, longitude, label]
+        // Ajout épingles minimalistes
         const pins = [
-          [48.8566, 2.3522, 'Paris'],
-          [40.7128, -74.0060, 'NYC'],
-          [35.6895, 139.6917, 'Tokyo'],
+          [48.8566, 2.3522],      // Paris
+          [40.7128, -74.0060],    // NYC
+          [35.6895, 139.6917]     // Tokyo
         ];
 
-        pins.forEach(([lat, lon, label]) => {
-          // Convertir lat/lon en coordonnées sphériques
-          const r = world.getGlobeRadius ? world.getGlobeRadius() : 1;
+        pins.forEach(([lat, lon]) => {
+          const r = 1; // rayon du globe.gl
           const phi = (90 - lat) * Math.PI / 180;
           const theta = (lon + 180) * Math.PI / 180;
           const x = r * Math.sin(phi) * Math.cos(theta);
           const y = r * Math.cos(phi);
           const z = r * Math.sin(phi) * Math.sin(theta);
 
-          // Créer sphère noire minimaliste
           const pinGeometry = new SphereGeometry(0.025, 8, 8);
           const pinMaterial = new MeshBasicMaterial({ color: 0x222222 });
           const pin = new Mesh(pinGeometry, pinMaterial);
           pin.position.set(x * 1.02, y * 1.02, z * 1.02);
 
-          // Ajouter au globe (groupe Three.js interne)
           world.scene().add(pin);
         });
       });
