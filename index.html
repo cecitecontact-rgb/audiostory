@@ -7,15 +7,17 @@
     body { margin: 0; }
     #globeViz { width: 100vw; height: 100vh; }
   </style>
+  <!-- Librairies nécessaires pour globe.gl -->
   <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
 </head>
 <body>
   <div id="globeViz"></div>
   <script>
-    // Couleur bleu très sombre
-    const blueDark = '#061A40';
-
-    // Liste des épingles (lat, lon)
+    // Bleu très sombre
+    const blueDark = "#061A40";
+    // Points épingles [lat, lon]
     const pins = [
       { lat: 48.8566, lon: 2.3522 },      // Paris
       { lat: 40.7128, lon: -74.006 },     // NYC
@@ -24,45 +26,40 @@
 
     // Initialise le globe
     const world = Globe(document.getElementById('globeViz'))
-      .backgroundColor('#fff')
+      .backgroundColor("#fff")
       .showGlobe(false)
       .showAtmosphere(false);
 
-    // Charge les continents et ajoute les épingles
-    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json').then(res => res.json())
+    // Charge les continents
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')
+      .then(res => res.json())
       .then(landTopo => {
-        // Affichage des continents en bleu très sombre
+        const landFeatures = topojson.feature(landTopo, landTopo.objects.land).features;
         world
-          .polygonsData(window.topojson.feature(landTopo, landTopo.objects.land).features)
+          .polygonsData(landFeatures)
           .polygonCapColor(() => blueDark)
           .polygonSideColor(() => 'rgba(0,0,0,0)');
 
-        // Ajoute les épingles minimalistes
+        // Ajoute les épingles
         pins.forEach(pin => {
-          const { lat, lon } = pin;
-
-          // Conversion lat/lon en coordonnées 3D sur la sphère
-          const r = 1.01; // rayon légèrement supérieur au globe
-          const phi = (90 - lat) * Math.PI / 180;
-          const theta = (lon + 180) * Math.PI / 180;
+          // Conversion lat/lon en coordonnées 3D
+          const r = 1.01;
+          const phi = (90 - pin.lat) * Math.PI / 180;
+          const theta = (pin.lon + 180) * Math.PI / 180;
           const x = r * Math.sin(phi) * Math.cos(theta);
           const y = r * Math.cos(phi);
           const z = r * Math.sin(phi) * Math.sin(theta);
 
-          // Création sphère noire pour l'épingle
-          const pinMesh = new window.THREE.Mesh(
-            new window.THREE.SphereGeometry(0.025, 8, 8),
-            new window.THREE.MeshBasicMaterial({ color: 0x222222 })
+          // Sphère noire pour épingle
+          const mesh = new THREE.Mesh(
+            new THREE.SphereGeometry(0.025, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0x111111 })
           );
-          pinMesh.position.set(x, y, z);
+          mesh.position.set(x, y, z);
 
-          // Ajout au globe (scène Three.js interne)
-          world.scene().add(pinMesh);
+          world.scene().add(mesh);
         });
       });
   </script>
-  <!-- Librairies globales nécessaires pour globe.gl polygons et épingles -->
-  <script src="https://unpkg.com/topojson-client@3"></script>
-  <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
 </body>
 </html>
