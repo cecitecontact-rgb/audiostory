@@ -2,48 +2,122 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Globe Blanc avec Volume</title>
+  <title>Globe Lisse Continents + Épingles + Rotation Souris + Lumière chaude</title>
   <style>
     html, body { margin: 0; height: 100%; }
-    #globeViz { width: 100vw; height: 100vh; background: #f0f0f0; }
+    #globeViz { width: 100vw; height: 100vh; background: #f9f5ef; }
+    #globeViz canvas { background: #f9f5ef !important; }
   </style>
   <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/globe.gl@2.26.0/dist/globe.gl.min.js"></script>
+  <script src="https://unpkg.com/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 <div id="globeViz"></div>
 <script>
-const globe = Globe()(document.getElementById('globeViz'))
-  .globeImageUrl(null)        // pas de texture
-  .bumpImageUrl(null)
-  .showAtmosphere(false)
-  .backgroundColor('#f0f0f0'); // fond gris clair
+const continentsUrl = 'https://raw.githubusercontent.com/cecitecontact-rgb/audiostory/main/continents-gold.png'; // continents dorés sur transparent
 
-// Globe blanc avec légèrement de relief grâce au PhongMaterial
-const sphereMat = new THREE.MeshPhongMaterial({
-  color: 0xffffff,        // blanc
-  shininess: 50,          // léger brillant
-  specular: 0xaaaaaa,     // reflets doux
-  flatShading: false
-});
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf9f5ef);
 
-// Créer une géométrie sphérique
-const radius = globe.getGlobeRadius();
-const sphereGeo = new THREE.SphereGeometry(radius, 64, 64);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 3);
 
-globe.globeGeometry(sphereGeo);
-globe.globeMaterial(sphereMat);
+// OrbitControls pour rotation à la souris
+const controls = new THREE.OrbitControls(camera, document.getElementById('globeViz'));
+controls.enableDamping = true;
+controls.dampingFactor = 0.1;
+controls.minDistance = 2;
+controls.maxDistance = 6;
 
-// Lumière douce pour volume
-const scene = globe.scene();
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+// Lumière chaude
+const ambient = new THREE.AmbientLight(0xffe5b4, 0.85); // ambre doux
+scene.add(ambient);
+const dir = new THREE.DirectionalLight(0xffbc6a, 1.1); // lumière chaude, dorée
 dir.position.set(5, 3, 5);
 scene.add(dir);
 
-// Globe qui tourne lentement
-globe.controls().autoRotate = true;
-globe.controls().autoRotateSpeed = 0.3;
+// Globe lisse blanc avec continents dorés
+const globeRadius = 1;
+const geometry = new THREE.SphereGeometry(globeRadius, 128, 128);
+
+new THREE.TextureLoader().load(continentsUrl, function(texture) {
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    shininess: 60,
+    specular: 0xffe5b4,
+    map: texture,
+    transparent: true
+  });
+  const globe = new THREE.Mesh(geometry, material);
+  scene.add(globe);
+  animate();
+});
+
+// Données épingles
+const pinsData = [
+  { lat: 48.8566, lng: 2.3522, name: "Paris" },
+  { lat: 52.52, lng: 13.405, name: "Berlin" },
+  { lat: 40.7128, lng: -74.006, name: "New York" }
+];
+
+// Ajout épingles + labels
+pinsData.forEach(p => {
+  const phi = (90 - p.lat) * Math.PI / 180;
+  const theta = (p.lng + 180) * Math.PI / 180;
+  const R = globeRadius;
+
+  const x = R * Math.sin(phi) * Math.cos(theta);
+  const y = R * Math.cos(phi);
+  const z = R * Math.sin(phi) * Math.sin(theta);
+
+  // Épingles dorées sobres
+  const pinGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.20, 16);
+  const pinMat = new THREE.MeshStandardMaterial({ color: 0xffbc6a, transparent: true, opacity: 0.85 });
+  const pin = new THREE.Mesh(pinGeo, pinMat);
+
+  pin.position.set(x, y, z);
+  const normal = new THREE.Vector3(x, y, z).normalize();
+  pin.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), normal);
+  pin.position.multiplyScalar(1.03);
+
+  scene.add(pin);
+
+  // Label Sprite
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  ctx.font = '18px Arial';
+  ctx.fillStyle = '#b97c2a';
+  ctx.textAlign = 'left';
+  ctx.fillText(p.name, 10, 22);
+  const texture = new THREE.CanvasTexture(canvas);
+  const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const sprite = new THREE.Sprite(spriteMat);
+  sprite.scale.set(0.3, 0.08, 1);
+  sprite.position.set(x * 1.08, y * 1.08, z * 1.08);
+  scene.add(sprite);
+});
+
+// Animation
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0xf9f5ef, 1);
+document.getElementById('globeViz').appendChild(renderer.domElement);
+
+// Responsive
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 </script>
 </body>
 </html>
