@@ -3,6 +3,7 @@
 
   <script src="//cdn.jsdelivr.net/npm/globe.gl"></script>
 <!--  <script src="../../dist/globe.gl.js"></script>-->
+  <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
 </head>
 
 <body>
@@ -24,8 +25,29 @@
           .polygonCapMaterial(new MeshLambertMaterial({ color: 'yellow', side: DoubleSide }))
           .polygonSideColor(() => 'rgba(0,0,0,0)');
       });
+    // === AJOUTER UNE ÉPINGLE SUR PARIS ===
+        // Coordonnées de Paris
+        const paris = { lat: 48.8566, lon: 2.3522 };
+        // Conversion coordonnées sphériques
+        const r = 1.01; // rayon un peu supérieur au globe
+        const phi = (90 - paris.lat) * Math.PI / 180;
+        const theta = (paris.lon + 180) * Math.PI / 180;
+        const x = r * Math.sin(phi) * Math.cos(theta);
+        const y = r * Math.cos(phi);
+        const z = r * Math.sin(phi) * Math.sin(theta);
+
+        // Création sphère noire
+        const pin = new THREE.Mesh(
+          new THREE.SphereGeometry(0.03, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xB30000 }) // rouge sombre
+        );
+        pin.position.set(x, y, z);
+
+        world.scene().add(pin);
+      });
     // Add auto-rotation
     world.controls().autoRotate = true;
     world.controls().autoRotateSpeed = 0.8;
+    
   </script>
 </body>
