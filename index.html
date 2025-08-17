@@ -1,44 +1,32 @@
-<head>
-  <style> body { margin: 0; } </style>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Globe Points Example</title>
+    <style>
+      body { margin: 0; }
+      #globeViz { width: 100vw; height: 100vh; }
+    </style>
+    <script src="https://unpkg.com/globe.gl"></script>
+  </head>
+  <body>
+    <div id="globeViz"></div>
+    <script>
+      const myPoints = [
+        { lat: 48.8566, lng: 2.3522, alt: 0.1, color: 'red' },     // Paris
+        { lat: 40.7128, lng: -74.0060, alt: 0.2, color: 'blue' },  // New York
+        { lat: 35.6895, lng: 139.6917, alt: 0.15, color: 'green' } // Tokyo
+      ];
 
-  <script src="//cdn.jsdelivr.net/npm/globe.gl"></script>
-<!--  <script src="../../dist/globe.gl.js"></script>-->
-  <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
-</head>
+      const Globe = GlobeGL()
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+        .showAtmosphere(true)
+        .pointsData(myPoints)              // <-- Ajout des points
+        .pointAltitude(d => d.alt)        // hauteur en fonction de `alt`
+        .pointColor(d => d.color)         // couleur en fonction de `color`
+        .pointRadius(0.5);                // taille du cylindre
 
-<body>
-  <div id="globeViz"></div>
-
-  <script type="module">
-    import { MeshLambertMaterial, DoubleSide } from 'https://esm.sh/three';
-    import * as topojson from 'https://esm.sh/topojson-client';
-
-    const world = new Globe(document.getElementById('globeViz'))
-      .backgroundColor('rgba(0,0,0,0)')
-      .showGlobe(false)
-      .showAtmosphere(false);
-
-    fetch('//cdn.jsdelivr.net/npm/world-atlas/land-110m.json').then(res => res.json())
-      .then(landTopo => {
-        world
-          .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
-          .polygonCapMaterial(new MeshLambertMaterial({ color: 'yellow', side: DoubleSide }))
-          .polygonSideColor(() => 'rgba(0,0,0,0)');
-      });
-    // === AJOUTER UNE ÉPINGLE SUR PARIS ===
-        // Coordonnées de Paris
-        const paris = { lat: 48.8566, lon: 2.3522 };
-        // Conversion coordonnées sphériques
-        const r = 1.01; // rayon un peu supérieur au globe
-        const phi = (90 - paris.lat) * Math.PI / 180;
-        const theta = (paris.lon + 180) * Math.PI / 180;
-        const x = r * Math.sin(phi) * Math.cos(theta);
-        const y = r * Math.cos(phi);
-        const z = r * Math.sin(phi) * Math.sin(theta);
-      });
-    // Add auto-rotation
-    world.controls().autoRotate = true;
-    world.controls().autoRotateSpeed = 0.8;
-    
-  </script>
-</body>
+      Globe(document.getElementById('globeViz'));
+    </script>
+  </body>
+</html>
