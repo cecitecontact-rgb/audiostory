@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Globe Points Example</title>
+    <title>Globe avec Atmosphère et Points</title>
     <style>
       body { margin: 0; }
       #globeViz { width: 100vw; height: 100vh; }
@@ -19,12 +19,14 @@
       ];
 
       const Globe = GlobeGL()
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+        .globeImageUrl('https://eoimages.gsfc.nasa.gov/images/imagerecords/74000/74429/world.topo.bathy.200412.3x5400x2700.jpg')
         .showAtmosphere(true)
-        .pointsData(myPoints)              // <-- Ajout des points
-        .pointAltitude(d => d.alt)        // hauteur en fonction de `alt`
-        .pointColor(d => d.color)         // couleur en fonction de `color`
-        .pointRadius(0.5);                // taille du cylindre
+        .atmosphereColor('lightskyblue')
+        .atmosphereAltitude(0.25)
+        .pointsData(myPoints)
+        .pointAltitude(d => d.alt)
+        .pointColor(d => d.color)
+        .pointRadius(0.5);
 
       Globe(document.getElementById('globeViz'));
     </script>
