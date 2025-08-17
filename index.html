@@ -1,34 +1,31 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Globe avec Atmosphère et Points</title>
-    <style>
-      body { margin: 0; }
-      #globeViz { width: 100vw; height: 100vh; }
-    </style>
-    <script src="https://unpkg.com/globe.gl"></script>
-  </head>
-  <body>
-    <div id="globeViz"></div>
-    <script>
-      const myPoints = [
-        { lat: 48.8566, lng: 2.3522, alt: 0.1, color: 'red' },     // Paris
-        { lat: 40.7128, lng: -74.0060, alt: 0.2, color: 'blue' },  // New York
-        { lat: 35.6895, lng: 139.6917, alt: 0.15, color: 'green' } // Tokyo
-      ];
+<head>
+  <style> body { margin: 0; } </style>
 
-      const Globe = GlobeGL()
-        .globeImageUrl('https://eoimages.gsfc.nasa.gov/images/imagerecords/74000/74429/world.topo.bathy.200412.3x5400x2700.jpg')
-        .showAtmosphere(true)
-        .atmosphereColor('lightskyblue')
-        .atmosphereAltitude(0.25)
-        .pointsData(myPoints)
-        .pointAltitude(d => d.alt)
-        .pointColor(d => d.color)
-        .pointRadius(0.5);
+  <script src="//cdn.jsdelivr.net/npm/globe.gl"></script>
+<!--  <script src="../../dist/globe.gl.js"></script>-->
+</head>
 
-      Globe(document.getElementById('globeViz'));
-    </script>
-  </body>
-</html>
+<body>
+  <div id="globeViz"></div>
+
+  <script type="module">
+    import { MeshLambertMaterial, DoubleSide } from 'https://esm.sh/three';
+    import * as topojson from 'https://esm.sh/topojson-client';
+
+    const world = new Globe(document.getElementById('globeViz'))
+      .backgroundColor('rgba(0,0,0,0)')
+      .showGlobe(false)
+      .showAtmosphere(false);
+
+    fetch('//cdn.jsdelivr.net/npm/world-atlas/land-110m.json').then(res => res.json())
+      .then(landTopo => {
+        world
+          .polygonsData(topojson.feature(landTopo, landTopo.objects.land).features)
+          .polygonCapMaterial(new MeshLambertMaterial({ color: 'darkslategrey', side: DoubleSide }))
+          .polygonSideColor(() => 'rgba(0,0,0,0)');
+      });
+    // Add auto-rotation
+    world.controls().autoRotate = true;
+    world.controls().autoRotateSpeed = 0.6;
+  </script>
+</body>
